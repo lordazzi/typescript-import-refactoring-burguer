@@ -77,6 +77,30 @@ function TSFileImport(path, _import) {
 	this.fromNodeModules = !_import.match(/['"]\.[\\\/]/);
 }
 
+function pathGenerator(importer, importing) {
+	importer = importer.replace(/\/|(\\\\)|\\/g, '/').replace(/\/[^\/]*\.ts$/, '').split('/');
+	importing = importing.replace(/\/|(\\\\)|\\/g, '/').split('/');
+	var length = 0;
+	var importFinal = '';
+
+	for (let i = 0; i < importer.length; i++) {
+		if (importer[i] !== importing[i]) {
+			length = i;
+			break;
+		}
+	}
+
+	var relativeImport = importer.splice(length);
+	importing = importing.splice(length);
+	if (relativeImport.length == 0) {
+		importFinal = './';
+	} else {
+		relativeImport.forEach(() => importFinal += '../');
+	}
+
+	return importFinal + importing.join('/').replace(/\.ts$/, '');
+}
+
 const reviewCode = (project) => {
 	project.forEach(item => {
 		if (item instanceof Directory) {
@@ -85,8 +109,25 @@ const reviewCode = (project) => {
 			Object.keys(item.imports).forEach(importation => {
 				if (!item.imports[importation].fromNodeModules) {
 					if (!exportMapByPath[importation]) {
+						var pathAntigoDaClasse = null, naoUsar = false;
 						console.error(`not found ${item.imports[importation].classes}\n(${importation})`);
-						console.info('but found in ', exportMapByClass[item.imports[importation].classes[0]][0].path);
+						item.imports[importation].classes.forEach((cls) => {
+							if (!pathAntigoDaClasse) {
+								pathAntigoDaClasse = classesPath.push(exportMapByClass[cls]);
+							} else if (pathAntigoDaClasse != classesPath.push(exportMapByClass[cls])) {
+								console.error(`O sistema não importará automaticamente a classe ${cls} pois ela possui mais de um path`); 
+								naoUsar = true;
+							}
+						});
+
+						if (pathAntigoDaClasse.length > 1) {
+							naoUsar = true;
+							console.error('Uma classe tem mais de um path, o refatorador não irá reimportá-la');
+						}
+
+						if (!naoUsar) {
+							pathAntigoDaClasse[0].path
+						}
 					}
 				}
 			});
