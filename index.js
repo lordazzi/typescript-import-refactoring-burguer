@@ -80,7 +80,7 @@ function TSFileImport(path, _import) {
 function pathGenerator(importer, importing) {
 	importer = importer.replace(/\/|(\\\\)|\\/g, '/').replace(/\/[^\/]*\.ts$/, '').split('/');
 	importing = importing.replace(/\/|(\\\\)|\\/g, '/').split('/');
-	var length = 0;
+	var length = importer.length;
 	var importFinal = '';
 
 	for (let i = 0; i < importer.length; i++) {
@@ -101,7 +101,7 @@ function pathGenerator(importer, importing) {
 	return importFinal + importing.join('/').replace(/\.ts$/, '');
 }
 
-const reviewCode = (project) => {
+(function reviewCode(project){
 	project.forEach(item => {
 		if (item instanceof Directory) {
 			reviewCode(item);
@@ -110,11 +110,10 @@ const reviewCode = (project) => {
 				if (!item.imports[importation].fromNodeModules) {
 					if (!exportMapByPath[importation]) {
 						var pathAntigoDaClasse = null, naoUsar = false;
-						console.error(`not found ${item.imports[importation].classes}\n(${importation})`);
 						item.imports[importation].classes.forEach((cls) => {
 							if (!pathAntigoDaClasse) {
-								pathAntigoDaClasse = classesPath.push(exportMapByClass[cls]);
-							} else if (pathAntigoDaClasse != classesPath.push(exportMapByClass[cls])) {
+								pathAntigoDaClasse = exportMapByClass[cls];
+							} else if (pathAntigoDaClasse != exportMapByClass[cls]) {
 								console.error(`O sistema não importará automaticamente a classe ${cls} pois ela possui mais de um path`); 
 								naoUsar = true;
 							}
@@ -126,13 +125,13 @@ const reviewCode = (project) => {
 						}
 
 						if (!naoUsar) {
-							pathAntigoDaClasse[0].path
+							var newImport = item.imports[importation]._import.replace(/from.*$/, `from '${pathGenerator(item.path, pathAntigoDaClasse[0].path)}';`);
+							item.content = item.content.replace(item.imports[importation]._import, newImport);
+							fs.writeFileSync(item.path, item.content);
 						}
 					}
 				}
 			});
 		}
 	});
-};
-
-reviewCode(new Directory(config.dir));
+})(new Directory(config.dir));
