@@ -12,7 +12,6 @@
 const fs = require('fs');
 const args = process.argv.splice(2);
 const config = { dir: process.cwd() };
-
 args.forEach(arg => {
 	if (/^--dir=.*$/.test(arg)) {
 		let subdir = arg.replace(/^.*=/, '');
@@ -73,8 +72,8 @@ function TSFileImport(path, _import) {
 	var parentPath = path.replace(/[\/\\][^\/\\]*$/, '');
 	this._import = _import;
 	this.classes = _import.replace(/^import {|}.*$|\s/g, '').trim().split(',');
-	this.from = (`${parentPath}${_import.replace(/^[^'"]*|['"]\.?|;/g, '')}`).replace(/\/|(\\\\)|\\/g, '/')+'.ts';
-	this.fromNodeModules = !_import.match(/['"]\.[\\\/]/);
+	this.from = fundirPaths(parentPath, _import.replace(/^[^'"]*|['"]\.?|;/g, ''))+'.ts';
+	this.fromNodeModules = !_import.match(/['"]\./);
 }
 
 function pathGenerator(importer, importing) {
@@ -101,6 +100,24 @@ function pathGenerator(importer, importing) {
 	return importFinal + importing.join('/').replace(/\.ts$/, '');
 }
 
+function fundirPaths(basePath, restoPath) {
+    basePath = basePath.replace(/\/|(\\\\)|\\/g, '/').split('/');
+    restoPath = restoPath.replace(/\/|(\\\\)|\\/g, '/').split('/');
+    let quantosRetorna = 0;
+
+    restoPath.forEach((resto) => {
+        if (resto) {
+            if (resto == '..') {
+                basePath.pop();
+            } else {
+                basePath.push(resto);
+            }
+        }
+    });
+
+    return basePath.join('/');
+}
+
 (function reviewCode(project){
 	project.forEach(item => {
 		if (item instanceof Directory) {
@@ -110,7 +127,7 @@ function pathGenerator(importer, importing) {
 				if (!item.imports[importation].fromNodeModules) {
 					if (!exportMapByPath[importation]) {
 						var pathAntigoDaClasse = null, naoUsar = false;
-						item.imports[importation].classes.forEach((cls) => {
+                        item.imports[importation].classes.forEach((cls) => {
 							if (!pathAntigoDaClasse) {
 								pathAntigoDaClasse = exportMapByClass[cls];
 							} else if (pathAntigoDaClasse != exportMapByClass[cls]) {
@@ -119,12 +136,16 @@ function pathGenerator(importer, importing) {
 							}
 						});
 
-						if (pathAntigoDaClasse.length > 1) {
+                        if (!pathAntigoDaClasse) {
+                            naoUsar = true;}
+
+						if (pathAntigoDaClasse && pathAntigoDaClasse.length > 1) {
 							naoUsar = true;
 							console.error('Uma classe tem mais de um path, o refatorador não irá reimportá-la');
 						}
 
 						if (!naoUsar) {
+                            console.log(`Problema em "${item.imports[importation]._import}", corrigindo com "${pathAntigoDaClasse[0].path}"`);
 							var newImport = item.imports[importation]._import.replace(/from.*$/, `from '${pathGenerator(item.path, pathAntigoDaClasse[0].path)}';`);
 							item.content = item.content.replace(item.imports[importation]._import, newImport);
 							fs.writeFileSync(item.path, item.content);
