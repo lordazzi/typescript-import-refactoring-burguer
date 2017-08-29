@@ -73,7 +73,7 @@ function TSFileImport(path, _import) {
 	this._import = _import;
 	this.classes = _import.replace(/^import {|}.*$|\s/g, '').trim().split(',');
 	this.from = fundirPaths(parentPath, _import.replace(/^[^'"]*|['"]\.?|;/g, ''))+'.ts';
-	this.fromNodeModules = !_import.match(/['"]\./);
+	this.fromNodeModules = !_import.match(/['"](\.|app\/)/);
 }
 
 function pathGenerator(importer, importing) {
