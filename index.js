@@ -59,8 +59,8 @@ function TSFile(path) {
 		this.imports[_import.from] = _import;
 	});
 
-	(this.content.match(/export\s+(class|enum)\s+[^\s]*\s*{/g) || []).forEach(match => {
-		var thisClass = match.replace(/^export\s+(class|enum)\s+|\s*{$/g, '');
+	(this.content.match(/export\s+(class|enum|type|interface)\s+[^\s]*\s*{/g) || []).forEach(match => {
+		var thisClass = match.replace(/^export\s+(class|enum|type|interface)\s+|\s*{$/g, '');
 		this.exports.push(thisClass);
 		var arr = exportMapByClass[thisClass] || [];
 		arr.push(this);
