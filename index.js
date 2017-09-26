@@ -131,7 +131,7 @@ function fundirPaths(basePath, restoPath) {
 							if (!pathAntigoDaClasse) {
 								pathAntigoDaClasse = exportMapByClass[cls];
 							} else if (pathAntigoDaClasse != exportMapByClass[cls]) {
-								console.error(`O sistema não importará automaticamente a classe ${cls} pois ela possui mais de um path`); 
+								console.error(`Won't import the class ${cls} because it more than one path`); 
 								naoUsar = true;
 							}
 						});
@@ -141,14 +141,17 @@ function fundirPaths(basePath, restoPath) {
 
 						if (pathAntigoDaClasse && pathAntigoDaClasse.length > 1) {
 							naoUsar = true;
-							console.error('Uma classe tem mais de um path, o refatorador não irá reimportá-la');
+							console.error(`A class has more than one path, the refactorer will not reimport. File: ${pathAntigoDaClasse}`);
 						}
 
 						if (!naoUsar) {
-                            console.log(`Problema em "${item.imports[importation]._import}", corrigindo com "${pathAntigoDaClasse[0].path}"`);
 							var newImport = item.imports[importation]._import.replace(/from.*$/, `from '${pathGenerator(item.path, pathAntigoDaClasse[0].path)}';`);
 							item.content = item.content.replace(item.imports[importation]._import, newImport);
-							fs.writeFileSync(item.path, item.content);
+
+							if (item.imports[importation]._import != newImport) {
+								console.log(`Problem found on "${item.imports[importation]._import}", correction applied "${newImport}"`);
+								fs.writeFileSync(item.path, item.content);
+							}
 						}
 					}
 				}
