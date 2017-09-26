@@ -1,0 +1,29 @@
+{
+  "name": "typescript-import-refactoring-burguer",
+  "version": "1.0.5",
+  "description": "While VSCode haven't the auto reimport files on folder change or renaming for refactoring situations, this script will help",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lordazzi/typescript-import-refactoring-burguer.git"
+  },
+  "keywords": [
+    "refactor",
+    "reimport",
+    "vscode",
+    "typescript",
+    "reimport-files",
+    "change-files-name",
+    "ts",
+    "angular2"
+  ],
+  "author": "Ricardo Azzi Silva",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/lordazzi/typescript-import-refactoring-burguer/issues"
+  },
+  "homepage": "https://github.com/lordazzi/typescript-import-refactoring-burguer#readme"
+}
