@@ -141,7 +141,7 @@ function fundirPaths(basePath, restoPath) {
 
 						if (pathAntigoDaClasse && pathAntigoDaClasse.length > 1) {
 							naoUsar = true;
-							console.error(`A class has more than one path, the refactorer will not reimport. File: ${pathAntigoDaClasse}`);
+							console.error(`A class has more than one path, the refactorer will not reimport. One of these classes: ${pathAntigoDaClasse[0].exports}`);
 						}
 
 						if (!naoUsar) {
